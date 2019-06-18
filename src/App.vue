@@ -1,12 +1,9 @@
 <template>
 <div>
-  <div class="app" v-bind:key="memo.id" v-for="(memo,index) in memos">
-    <div>{{memo.id}}{{index}}</div>
-  </div>
   <div class="app2" v-bind:key="memo.id" v-for="(memo,index) in memos">
   <p>{{memo.id}}</p>
    <table >
-   <tr class="piece">
+   <tr class="piece2" v-bind:style="{ color: memo.memostyle.color, position: memo.memostyle.position, top: memo.memostyle.top + 'px', left: memo.memostyle.left + 'px'}">
 <!--   v-bind:style="{ top: memoPositionY + 'px', left: memoPositionX + 'px'  }"> -->
 <!--   <tr class="piece" v-bind:style="'{ top:' + {{memo.position.y}} + 'px;left:' + {{memo.position.x}} + 'px; }'"> -->
    <th>
@@ -38,12 +35,9 @@ export default {
     return {
       msg: 'HelloWorld',
       memos: [
-        {id: 1, title: 'タイトル1', body: '中身', edit: true, position: 1, memostyle:1},
-	//{color: "#8AF0F0", position: absolute, left:0, top:0}},
-        {id: 2, title: 'タイトル2', body: '中身中身', edit: true, position: 1,memostyle:1},
-//	{ color: "#8AF0F0",position: absolute, left:10, top:10}},
-        {id: 3, title: 'タイトル3', body: '中身中身中身', edit: true, position: 1,memostyle:1}
-//	{color: "#8FF0F0", position: absolute, left:20, top:20}}
+        {id: 1, title: 'タイトル1', body: '中身', edit: true, position: 1, memostyle: {color: '#8AF0F0', position: 'absolute', left:0, top:0}},
+        {id: 2, title: 'タイトル2', body: '中身中身', edit: true, position: 1,memostyle: { color: '#8AF0F0',position: 'absolute', left:200, top:250}},
+        {id: 3, title: 'タイトル3', body: '中身中身中身', edit: true, position: 1,memostyle: {color: '#8FF0F0', position: 'absolute', left:400, top:30}}
       ],
       active_title: false
     }
@@ -55,7 +49,8 @@ export default {
 	title:this.memos[i].title,
 	body:this.memos[i].body,
 	edit: (! this.memos[i].edit),
-	position: this.memos[i].position
+	position: this.memos[i].position,
+	memostyle: this.memostyle
       };
       this.$set(this.memos, i,obj)
     },
