@@ -1,10 +1,11 @@
 <template>
 <div>
   <div class="app" v-bind:key="memo.id" v-for="(memo,index) in memos">
+  <div @mousemove="touchmove(index,$event)" @mouseup="touchend(index,$event)" @mouseleave="touchend(index,$event)" @mousedown="touchstart(index, $event)">
   <p>{{memo.id}}</p>
    <div class="piece2" v-bind:style="{ color: memo.memostyle.color, position: memo.memostyle.position, top: memo.memostyle.top + 'px', left: memo.memostyle.left + 'px'}">
 <!--   v-bind:style="{ top: memoPositionY + 'px', left: memoPositionX + 'px'  }"> -->
-<!--   <tr class="piece" v-bind:style="'{ top:' + {{memo.position.y}} + 'px;left:' + {{memo.position.x}} + 'px; }'"> -->
+<!--   <tr class="piece" v-bind:style="'{ top:' + {{memo.position.y} - 10 } + 'px;left:' + {{memo.position.x} - 20 } + 'px; }'"> -->
    <div class="th">
      <div v-if="memo.edit">{{index}}{{memo.title}}</div>
      <div v-else>{{index}}<input type="text" v-model="memo.title" /></div>
@@ -21,10 +22,10 @@
    <input type="text" v-mode="memo.memostyle.color" name="hideAfterPaletteSelect" v-bind:id="'hideAfterPaletteSelect' + index" value="" style="display: none;">
    <button @click="changeColor(index,memo)">色の変更</button>
    </div>
-   </div>
+   <!-- peace2 --></div>
 
-
-  </div>
+   <!-- mouse --></div>
+<!-- app --></div>
 </div>
 </template>
 
@@ -38,10 +39,14 @@ export default {
     return {
       msg: 'HelloWorld',
       memos: [
-        {id: 1, title: 'タイトル1', body: '中身', edit: true, position: 1, memostyle: {color: '#8AF0F0', position: 'absolute', left:0, top:0}},
-        {id: 2, title: 'タイトル2', body: '中身中身', edit: true, position: 1,memostyle: { color: '#8AF0F0',position: 'absolute', left:200, top:250}},
-        {id: 3, title: 'タイトル3', body: '中身中身中身', edit: true, position: 1,memostyle: {color: '#8FF0F0', position: 'absolute', left:400, top:30}}
+        {id: 1, title: 'タイトル1', body: '中身', edit: true, is_mousedown: false, position: 1, memostyle: {color: '#8AF0F0', position: 'absolute', left:0, top:0}},
+        {id: 2, title: 'タイトル2', body: '中身中身', edit: true, is_mousedown: false, position: 1,memostyle: { color: '#8AF0F0',position: 'absolute', left:200, top:250}},
+        {id: 3, title: 'タイトル3', body: '中身中身中身', edit: true, is_mousedown: false, position: 1,memostyle: {color: '#8FF0F0', position: 'absolute', left:400, top:30}}
       ],
+      prev_pos : {
+        x: 0,
+	y: 0
+      },
       active_title: false
     }
   },
@@ -52,6 +57,7 @@ export default {
 	title:this.memos[i].title,
 	body:this.memos[i].body,
 	edit: (! this.memos[i].edit),
+	is_mousedown: false,
 	position: this.memos[i].position,
 	memostyle: this.memos[i].memostyle
       };
@@ -63,10 +69,65 @@ export default {
 	title:this.memos[i].title,
 	body:this.memos[i].body,
 	edit: (! this.memos[i].edit),
+	is_mousedown: false,
 	position: this.memos[i].position,
 	memostyle: this.memos[i].memostyle
       };
       this.$set(this.memos, i,obj)
+    },
+    touchstart: function (i,e) {
+      console.log("touchstart start :" + i +" x:"+ e.pageX + " y:" + e.pageY);
+      if (this.memos[i].edit) {
+      	 var obj = {
+       	   id: this.memos[i].id,
+	   title: this.memos[i].title,
+	   body: this.memos[i].body,
+	   edit: true,
+	   is_mousedown: true,
+	   position: this.memos[i].position,
+	   memostyle: this.memos[i].memostyle
+	};
+	console.log("touch start:%d,%d", e.offsetX, e.offsetY);
+	this.$set(this.memos, i,obj)
+	// prev_posにはクリックしたポジションとの差を保存
+	this.prev_pos.x = e.offsetX; //this.memos[i].memostyle.left +  e.pageX;
+	this.prev_pos.y = e.offsetY; //this.memos[i].memostyle.top + e.pageY;
+	console.log("touch start.offsetX,offsetY: %d,%d memostyle.top,left %d,%d", e.offsetX, e.offsetY, this.prev_pos.x, this.prev_pos.y);
+      }
+    },
+    touchmove: function (i,e) {
+      if(this.memos[i].is_mousedown && this.memos[i].edit) {
+         console.log("touchmove start " + "px:" + this.prev_pos.x + " py:" + this.prev_pos.y + " e.pageX:" + e.pageX + " e.pageY:" + e.pageY);
+         let moved_x = this.memos[i].memostyle.left - e.pageX + this.prev_pos.x;
+      	 let moved_y = this.memos[i].memostyle.top - e.pageY + this.prev_pos.y ;
+      	 var obj = {
+             id:this.memos[i].id,
+	     title:this.memos[i].title,
+	     body:this.memos[i].body,
+	     edit: true,
+	     is_mousedown: true,
+	     position: this.memos[i].position,
+	     memostyle: {
+	         color: this.memos[i].memostyle.color,
+		 position: this.memos[i].memostyle.position,
+		 left: this.memos[i].memostyle.left -= moved_x, 
+		 top: this.memos[i].memostyle.top -= moved_y
+	     }
+	 }
+	 this.$set(this.memos, i,obj)
+//	 this.prev_pos.x -= moved_x;//e.pageX;
+//      	 this.prev_pos.y -= moved_y//e.pageY;
+      }
+    },
+    touchend: function (i,e) {
+      console.log("touchend start");
+      if (this.memos[i].is_mousedown) {
+      	 this.memos[i].is_mousedown=false;
+	 console.log("touch end")
+	 this.$set(this.memos, i,this.memos[i])
+	 this.prev_pos.x = 0;
+	 this.prev_pos.y = 0;
+      }
     },
     changeColor: function(i,obj) {
         var c = obj.memostyle.color;
@@ -101,6 +162,7 @@ export default {
                 title:obj.title,
                 body:obj.body,
                 edit: (obj.edit),
+		is_mousedown: false,
                 position: obj.position,
                 memostyle: mstyle
               };
@@ -145,6 +207,7 @@ export default {
                 title:this.memos[i].title,
                 body:this.memos[i].body,
                 edit: (this.memos[i].edit),
+		is_mousedown: false,
                 position: this.memos[i].position,
                 memostyle: mstyle
               }
